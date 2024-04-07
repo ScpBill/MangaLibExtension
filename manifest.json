@@ -1,0 +1,16 @@
+{
+    "manifest_version": 2,
+    "name": "MangaLib Extension",
+    "version": "1.0",
+    "description": "Описание вашего плагина",
+    "content_scripts": [
+      {
+        "matches": [
+          "https://anilib.me/ru/anime/*",
+          "https://anilib.me/*"
+        ],
+        "js": ["index.js"]
+      }
+    ],
+    "permissions": ["tabs"]
+  }
