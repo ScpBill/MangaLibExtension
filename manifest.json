@@ -9,7 +9,9 @@
           "https://anilib.me/ru/anime/*",
           "https://anilib.me/*"
         ],
-        "js": ["index.js"]
+        "js": [
+          "utilities/timecodes.js"
+        ]
       }
     ],
     "permissions": ["tabs"]

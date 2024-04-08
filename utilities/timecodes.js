@@ -84,15 +84,19 @@ async function createPanel() {
             title_team_inline.appendChild(title_team_expand_button);
             title_team_expand_button.setAttribute('class', 'btn form-input is-link');
             title_team_expand_button.setAttribute('type', 'button');
-            title_team_expand_button.setAttribute('style', 'border: solid 1px var(--input-border); border-radius: 5px; max-width: 274px;' + (
-                params.teams[team].expanded ? ' background-color: #242424;' : '') + (
-                !params.teams[team].enabled ? ' color: #707070': ''));
+            title_team_expand_button.setAttribute('style', 'border: solid 1px var(--input-border); border-radius: 5px; max-width: 274px;'
+                + (params.teams[team].enabled ? '' : 'color: #666;')
+                + (params.teams[team].expanded ? ' background-color: #242424;' : '')
+                + (params.teams[team].banner?.url ? ` background: ${params.teams[team].enabled ? '' : 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),'} url("${params.teams[team].banner.url}"); background-size: cover; background-position: center; text-shadow: -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000, 1px 0 0 #000, 1px 1px 0 #000, 0 1px 0 #000, -1px 1px 0 #000, -1px 0 0 #000;` : '')
+                + (params.teams[team].banner?.position_y ? ` background-position-y: ${params.teams[team].banner?.position_y}%;`: '')
+            );
             title_team_expand_button.innerText = params.teams[team].display_name ?? params.teams[team].name;
             title_team_expand_button.onclick = async () => {
                 params.teams[team].expanded = !params.teams[team].expanded;
                 localStorage.setItem('__timecode_parameters', JSON.stringify(params));
                 await createPanel();
             };
+            // text-shadow: -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000, 1px 0 0 #000, 1px 1px 0 #000, 0 1px 0 #000, -1px 1px 0 #000, -1px 0 0 #000;
 
             // Title team edit - button
             const title_team_edit_button = document.createElement('button');
@@ -158,31 +162,131 @@ async function createPanel() {
                                 
                                 {
 
-                                    // Form group offset - div
-                                    const popup_form_offset = document.createElement('div');
-                                    popup_body.appendChild(popup_form_offset);
-                                    popup_form_offset.setAttribute('class', 'form-group _offset');
+                                    // Form group display name - div
+                                    const popup_form_display_name = document.createElement('div');
+                                    popup_body.appendChild(popup_form_display_name);
+                                    popup_form_display_name.setAttribute('class', 'form-group');
+                                    popup_form_display_name.setAttribute('style', 'padding-bottom: 8px;');
         
                                     {
-                                        // Form group offset label - div
-                                        const popup_form_offset_label = document.createElement('div');
-                                        popup_form_offset.appendChild(popup_form_offset_label);
-                                        popup_form_offset_label.setAttribute('class', 'form-label');
-                                        popup_form_offset_label.innerHTML = `<span>Отображаемое название</span>`;
+                                        // Form group display name label - div
+                                        const popup_form_display_name_label = document.createElement('div');
+                                        popup_form_display_name.appendChild(popup_form_display_name_label);
+                                        popup_form_display_name_label.setAttribute('class', 'form-label');
+                                        popup_form_display_name_label.innerHTML = `<span>Отображаемое название</span>`;
         
-                                        // Form group offset input - div
-                                        const popup_form_offset_input = document.createElement('div');
-                                        popup_form_offset.appendChild(popup_form_offset_input);
-                                        popup_form_offset_input.setAttribute('class', 'form-input');
+                                        // Form group display name input - div
+                                        const popup_form_display_name_input = document.createElement('div');
+                                        popup_form_display_name.appendChild(popup_form_display_name_input);
+                                        popup_form_display_name_input.setAttribute('class', 'form-input');
         
                                         {
-                                            // Form group offset input - input
+                                            // Form group display name input - input
                                             const popup_form_input = document.createElement('input');
-                                            popup_form_offset_input.appendChild(popup_form_input);
+                                            popup_form_display_name_input.appendChild(popup_form_input);
                                             popup_form_input.setAttribute('class', 'form-input__field');
-                                            popup_form_input.setAttribute('placeholder', 'Введите название');
+                                            popup_form_input.setAttribute('placeholder', params.teams[team].name);
                                             popup_form_input.value = params.teams[team].display_name ?? '';
                                         }
+                                    }
+
+                                    // Form group banner url - div
+                                    const popup_form_banner_url = document.createElement('div');
+                                    popup_body.appendChild(popup_form_banner_url);
+                                    popup_form_banner_url.setAttribute('class', 'form-group');
+                                    popup_form_banner_url.setAttribute('style', 'padding: 8px 0;');
+        
+                                    {
+                                        // Form group banner url label - div
+                                        const popup_form_banner_url_label = document.createElement('div');
+                                        popup_form_banner_url.appendChild(popup_form_banner_url_label);
+                                        popup_form_banner_url_label.setAttribute('class', 'form-label');
+                                        popup_form_banner_url_label.innerHTML = `<span>URL баннера на кнопку (Вставляется прямо в код!!!)</span>`;
+        
+                                        // Form group banner url input - div
+                                        const popup_form_banner_url_input = document.createElement('div');
+                                        popup_form_banner_url.appendChild(popup_form_banner_url_input);
+                                        popup_form_banner_url_input.setAttribute('class', 'form-input');
+        
+                                        {
+                                            // Form group banner url input - input
+                                            const popup_form_input_url = document.createElement('input');
+                                            popup_form_banner_url_input.appendChild(popup_form_input_url);
+                                            popup_form_input_url.setAttribute('class', 'form-input__field');
+                                            popup_form_input_url.value = params.teams[team].banner?.url ?? '';
+                                            popup_form_input_url.onchange = () => {
+                                                popup_body.children[popup_body.children.length - 2].lastChild.setAttribute('style', `background-image: url("${popup_form_banner_url.lastChild.firstChild.value}"); height: 49px; width: 100%; background-position: center ${popup_form_banner_position.lastChild.firstChild.value}%; background-size: cover;`);
+                                            };
+                                        }
+                                    }
+
+                                    // Porm group banner position - div
+                                    const popup_form_banner_position = document.createElement('div');
+                                    popup_body.appendChild(popup_form_banner_position);
+                                    popup_form_banner_position.setAttribute('class', 'form-group');
+                                    popup_form_banner_position.setAttribute('style', 'padding-top: 8px 0;');
+        
+                                    {
+                                        // Form group banner position label - div
+                                        const popup_form_banner_position_label = document.createElement('div');
+                                        popup_form_banner_position.appendChild(popup_form_banner_position_label);
+                                        popup_form_banner_position_label.setAttribute('class', 'form-label');
+                                        popup_form_banner_position_label.innerHTML = `<span>Смещение баннера по вертикали</span>`;
+
+                                        // Form group banner position block - div
+                                        const popup_form_banner_position_block = document.createElement('div');
+                                        popup_form_banner_position.appendChild(popup_form_banner_position_block);
+                                        popup_form_banner_position_block.setAttribute('class', 'inputs _inline');
+
+                                        {
+                                            // Form banner position input - input
+                                            const popup_form_range = document.createElement('input');
+                                            popup_form_banner_position_block.appendChild(popup_form_range);
+                                            popup_form_range.setAttribute('class', 'form-input__field');
+                                            popup_form_range.setAttribute('id', 'banner_position_range');
+                                            popup_form_range.setAttribute('oninput', 'banner_position_number.value=value');
+                                            popup_form_range.setAttribute('type', 'range');
+                                            popup_form_range.setAttribute('min', '0');
+                                            popup_form_range.setAttribute('max', '100');
+                                            popup_form_range.setAttribute('value', '50');
+                                            popup_form_range.setAttribute('step', '1');
+                                            popup_form_range.onchange = () => {
+                                                popup_body.children[popup_body.children.length - 2].lastChild.setAttribute('style', `background-image: url("${popup_form_banner_url.lastChild.firstChild.value}"); height: 49px; width: 100%; background-position: center ${popup_form_banner_position.lastChild.firstChild.value}%; background-size: cover;`);
+                                            };
+
+                                            // Form banner position number - input
+                                            const popup_form_number = document.createElement('input');
+                                            popup_form_banner_position_block.appendChild(popup_form_number);
+                                            popup_form_number.setAttribute('class', 'form-input__field');
+                                            popup_form_number.setAttribute('id', 'banner_position_number');
+                                            popup_form_number.setAttribute('oninput', 'banner_position_range.value=value');
+                                            popup_form_number.setAttribute('type', 'number');
+                                            popup_form_number.setAttribute('min', '0');
+                                            popup_form_number.setAttribute('max', '100');
+                                            popup_form_number.setAttribute('value', '50');
+                                            popup_form_number.setAttribute('step', '1');
+                                            popup_form_number.setAttribute('style', 'max-width: 100px;')
+                                        }
+                                    }
+
+                                    // Porm group banner preview - div
+                                    const popup_form_banner_preview = document.createElement('div');
+                                    popup_body.appendChild(popup_form_banner_preview);
+                                    popup_form_banner_preview.setAttribute('class', 'form-group _offset');
+                                    popup_form_banner_preview.setAttribute('style', 'padding-top: 8px;');
+        
+                                    {
+                                        // Form group banner preview label - div
+                                        const popup_form_banner_preview_label = document.createElement('div');
+                                        popup_form_banner_preview.appendChild(popup_form_banner_preview_label);
+                                        popup_form_banner_preview_label.setAttribute('class', 'form-label');
+                                        popup_form_banner_preview_label.innerHTML = `<span>Превью баннера</span>`;
+        
+                                        // Form group banner preview - div
+                                        const popup_form_banner_preview_div = document.createElement('div');
+                                        popup_form_banner_preview.appendChild(popup_form_banner_preview_div);
+                                        popup_form_banner_preview_div.setAttribute('class', 'form-input__field');
+                                        popup_form_banner_preview_div.setAttribute('style', `background-image: url("${popup_form_banner_url.lastChild.firstChild.value}"); height: 49px; width: 100%; background-position: center ${popup_form_banner_position.lastChild.firstChild.value}%; background-size: cover;`);
                                     }
         
                                     // Form button - button
@@ -190,9 +294,13 @@ async function createPanel() {
                                     popup_body.appendChild(popup_form_button);
                                     popup_form_button.setAttribute('class', 'btn is-filled is-full-width variant-primary size-lg');
                                     popup_form_button.setAttribute('type', 'button');
-                                    popup_form_button.innerText = 'Сохранить название';
+                                    popup_form_button.innerText = 'Сохранить изменения';
                                     popup_form_button.onclick = async () => {
-                                        params.teams[team].display_name = popup_form_offset.lastChild.firstChild.value;
+                                        params.teams[team].display_name = popup_form_display_name.lastChild.firstChild.value || params.teams[team].name;
+                                        params.teams[team].banner = {
+                                            url: popup_form_banner_url.lastChild.firstChild.value || null,
+                                            position_y: popup_form_banner_position.lastChild.firstChild.value,
+                                        };
                                         localStorage.setItem('__timecode_parameters', JSON.stringify(params));
                                         if (document.getElementsByClassName('_team_parameters')) await createPanel();
                                         popup_root.removeChild(popup_container);
@@ -355,9 +463,10 @@ async function createPanel() {
                         const settings_adder_input = document.createElement('input');
                         settings_adder_form.appendChild(settings_adder_input);
                         settings_adder_input.setAttribute('class', 'form-input__field');
-                        settings_adder_input.setAttribute('type', 'text');
+                        settings_adder_input.setAttribute('type', 'number');
+                        settings_adder_input.setAttribute('min', '0');
+                        settings_adder_input.setAttribute('max', '999');
                         settings_adder_input.setAttribute('inputmode', 'numeric');
-                        // _adding_input.setAttribute('style', 'max-width: 40px;');
                         settings_adder_input.value = `${params.teams[team].data.changes.add}`;
                         settings_adder_input.onchange = () => {
                             if (!isNaN(+settings_adder_input.value)) {
@@ -586,6 +695,10 @@ async function createPanel() {
             return (seconds >= 3600 ? `${('0' + Math.floor(seconds / 3600)).slice(-2)}:` : '') + `${('0' + Math.floor(seconds / 60)).slice(-2)}:${('0' + seconds % 60).slice(-2)}`;
         }
 
+        function toTime(seconds) {
+            return (seconds >= 3600 ? `${('0' + Math.floor(seconds / 3600)).slice(-2)}:` : '') + `${('0' + Math.floor(seconds / 60)).slice(-2)}:${('0' + Math.floor(seconds % 60)).slice(-2)}`
+        }
+
         const many_episodes = main_panel.children[1].children[0].children[0].children[0].checked;
         const to_episode = main_panel.children[1].children[0].children[1].children[0].value;
         const for_one_team = main_panel.children[2].children[0].children[0].checked;
@@ -623,9 +736,22 @@ async function createPanel() {
         } else {
 
             const players = (await (await fetch(`https://api.lib.social/api/episodes/${episode_id}?with_moderated=1`)).json()).data.players.filter(player => player.player == 'Animelib');
+            const team_id = players.find(player => player.id == player_id)?.team?.id;
+            if (team_ids.includes(team_id)) {
+                const response = [];
+                const team_timecodes = teams.find(team => team.id == team_id).data.timecode;
+                for (let timecode of team_timecodes) {
+                    if (team_timecodes.find(team_timecode => team_timecode.from == timecode.from && team_timecode.to == timecode.to)) continue;
+                    response.push(structuredClone(timecode));
+                    const changes_add = teams.find(team => team.id == team_id).data.changes.add;
+                    response.at(-1).from = toTime(add(timecode.from, -changes_add));
+                    response.at(-1).to = toTime(add(timecode.to, -changes_add));
+                }
+                team_timecodes = response;
+            }
             for (let player of players) {
                 const response = [];
-                for (let timecode of timecodes) {
+                for (let timecode of timecodes.concat(...teams.find(team => team.id == player.team.id).data.timecode)) {
                     response.push(structuredClone(timecode));
                     if (team_ids.includes(player.team.id)) {
                         const changes_add = teams.find(team => team.id == player.team.id).data.changes.add;
@@ -635,12 +761,9 @@ async function createPanel() {
                     if (timecode.to.startsWith('-')) {
                         const video = document.createElement('video');
                         video.setAttribute('src', 'https://video1.anilib.me/.%D0%B0s/' + player.video.quality.at(-1).href);
-                        async function onloaded() {
-                            return new Promise(resolve => (video.onloadeddata = () => resolve()));
-                        };
-                        await onloaded();
+                        await new Promise(resolve => (video.onloadeddata = () => resolve()));
                         let seconds = video.duration + +timecode.to;
-                        response.at(-1).to = (seconds >= 3600 ? `${('0' + Math.floor(seconds / 3600)).slice(-2)}:` : '') + `${('0' + Math.floor(seconds / 60)).slice(-2)}:${('0' + Math.floor(seconds % 60)).slice(-2)}`
+                        response.at(-1).to = toTime(seconds);
                     }
                 }
                 if (JSON.stringify(timecodes) != JSON.stringify(response)) {
@@ -683,29 +806,44 @@ async function run_timecode_event() {
         if (el[0].addedNodes.length && !el[0].previousSibling.childNodes.length) await createPanel()
     });
     observer.observe(root, { childList: true });
-    
-
-    // if (0) {
-    //     const body = document.getElementsByClassName('popup-body')?.[0];
-    //     if (!body) return;
-    //     body.insertAdjacentElement(body.children.length - 2, createPanel());
-    //     const bearer_token = JSON.parse(localStorage.getItem('auth'))?.token?.access_token;
-    //     if (!bearer_token) return console.error('Auth is request');
-    //     const anime_id = document.URL.split('https://anilib.me/ru/anime/')[1].split('/')[0];
-    //     const episode_id = document.URL.split(`https://anilib.me/ru/anime/${anime_id}/episodes/`)[1];
-    //     const episodes = await (await fetch(`https://api.lib.social/api/episodes?anime_id=${anime_id}`)).json();
-    //     const teams = await (await fetch(`https://api.lib.social/api/anime/${anime_id}?fields[]=teams`)).json();
-    //     const players = await (await fetch(`https://api.lib.social/api/episodes/${episode_id}?with_moderated=1`)).json();
-    // }
 }
 
 
-async function run() {
-    await run_timecode_event();
+function address_check() {
+    return !!(/https:\/\/anilib\.me\/ru\/anime\/\d{1,6}--[a-z-]{1,50}\/episodes\/\d{1,8}\/player\/\d{1,8}/g.exec(document.URL));
+}
+
+
+function popup_check() {
+    return document.querySelector('div.popup-root > div > div.popup__inner > div > div.popup-header > div')?.innerText === 'Редактирование тайм кодов';
 }
 
 
 (async () => {
-    if (document.readyState != 'loading') await run();
-    else document.addEventListener('DOMContentLoaded', run);
+    if (document.readyState == 'loading') {
+        await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+    }
+
+    let url_check_status = false;
+    let popup_check_status = false;
+
+    const url_observer = new MutationObserver(async () => {
+        if (url_check_status == (url_check_status = address_check()) || !url_check_status) return;
+
+        popup_observer.observe(
+            document.querySelector('div.popup-root'),
+            { childList: true, subtree: true }
+        );
+    });
+
+    const popup_observer = new MutationObserver(async () => {
+        if (popup_check_status == (popup_check_status = popup_check()) || !popup_check_status) return;
+        
+        await createPanel();
+    });
+
+    url_observer.observe(
+        document.querySelector('body'),
+        { childList: true, subtree: true }
+    );
 })()
