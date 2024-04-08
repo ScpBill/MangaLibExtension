@@ -1,5 +1,5 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "MangaLib Extension",
     "version": "1.0",
     "description": "Описание вашего плагина",

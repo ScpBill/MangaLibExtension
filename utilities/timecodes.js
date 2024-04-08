@@ -3,7 +3,7 @@ async function createPanel() {
     const params = JSON.parse(localStorage.getItem('__timecode_parameters'));
     if (!params || !params.teams) {
         localStorage.setItem('__timecode_parameters', '{"teams": []}');
-        params = { teams: [] };
+        await createPanel();
     }
 
     // Popup body - div
@@ -250,6 +250,7 @@ async function createPanel() {
                                             popup_form_range.setAttribute('max', '100');
                                             popup_form_range.setAttribute('value', '50');
                                             popup_form_range.setAttribute('step', '1');
+                                            popup_form_range.value = params.teams[team].banner?.position_y ?? 50;
                                             popup_form_range.onchange = () => {
                                                 popup_body.children[popup_body.children.length - 2].lastChild.setAttribute('style', `background-image: url("${popup_form_banner_url.lastChild.firstChild.value}"); height: 49px; width: 100%; background-position: center ${popup_form_banner_position.lastChild.firstChild.value}%; background-size: cover;`);
                                             };
@@ -266,6 +267,7 @@ async function createPanel() {
                                             popup_form_number.setAttribute('value', '50');
                                             popup_form_number.setAttribute('step', '1');
                                             popup_form_number.setAttribute('style', 'max-width: 100px;')
+                                            popup_form_number.value = params.teams[team].banner?.position_y ?? 50;
                                         }
                                     }
 
@@ -684,9 +686,7 @@ async function createPanel() {
 
         function add(time, seconds) {
             const splitted = time.split(':');
-            if (splitted.length == 1) {
-                seconds += +splitted[0];
-            } else if (splitted.length == 2) {
+            if (splitted.length == 2) {
                 seconds += +splitted[0] * 60 + +splitted[1];
             } else if (splitted.length == 3) {
                 seconds += +splitted[0] * 3600 + +splitted[1] * 60 + +splitted[2];
@@ -695,14 +695,10 @@ async function createPanel() {
             return (seconds >= 3600 ? `${('0' + Math.floor(seconds / 3600)).slice(-2)}:` : '') + `${('0' + Math.floor(seconds / 60)).slice(-2)}:${('0' + seconds % 60).slice(-2)}`;
         }
 
-        function toTime(seconds) {
-            return (seconds >= 3600 ? `${('0' + Math.floor(seconds / 3600)).slice(-2)}:` : '') + `${('0' + Math.floor(seconds / 60)).slice(-2)}:${('0' + Math.floor(seconds % 60)).slice(-2)}`
-        }
-
         const many_episodes = main_panel.children[1].children[0].children[0].children[0].checked;
         const to_episode = main_panel.children[1].children[0].children[1].children[0].value;
         const for_one_team = main_panel.children[2].children[0].children[0].checked;
-        const timecodes = [];
+        let timecodes = [];
         for (let div of popup_body.children) {
             if (div.tagName != 'DIV') break;
             timecodes.push({
@@ -711,6 +707,7 @@ async function createPanel() {
                 to: div.children[1].children[1].children[0].value
             })
         }
+        const original = structuredClone(timecodes);
 
         const bearer_token = JSON.parse(localStorage.getItem('auth'))?.token?.access_token;
         const anime_id = document.URL.split('https://anilib.me/ru/anime/')[1].split('/')[0];
@@ -724,9 +721,10 @@ async function createPanel() {
             const response = [];
             for (let timecode of timecodes) {
                 response.push(structuredClone(timecode));
-                if (timecode.to.startsWith('-')) {
-                    let seconds = document.getElementById('video').children[0].duration + +timecode.to;
-                    response.at(-1).to = (seconds >= 3600 ? `${('0' + Math.floor(seconds / 3600)).slice(-2)}:` : '') + `${('0' + Math.floor(seconds / 60)).slice(-2)}:${('0' + Math.floor(seconds % 60)).slice(-2)}`
+                if (timecode.to == '09:99:99') {
+                    const video = document.getElementById('video').children[0];
+                    if (!video.duration) await new Promise(resolve => (video.onloadeddata = () => resolve()));
+                    response.at(-1).to = add('00:00', Math.floor(video.duration));
                 }
             }
             if (JSON.stringify(timecodes) != JSON.stringify(response)) {
@@ -740,34 +738,36 @@ async function createPanel() {
             if (team_ids.includes(team_id)) {
                 const response = [];
                 const team_timecodes = teams.find(team => team.id == team_id).data.timecode;
-                for (let timecode of team_timecodes) {
+                for (let timecode of timecodes) {
                     if (team_timecodes.find(team_timecode => team_timecode.from == timecode.from && team_timecode.to == timecode.to)) continue;
                     response.push(structuredClone(timecode));
                     const changes_add = teams.find(team => team.id == team_id).data.changes.add;
-                    response.at(-1).from = toTime(add(timecode.from, -changes_add));
-                    response.at(-1).to = toTime(add(timecode.to, -changes_add));
+                    response.at(-1).from = add(timecode.from, -changes_add);
+                    response.at(-1).to = timecode.to == '09:99:99' ? timecode.to : add(timecode.to, -changes_add);
                 }
-                team_timecodes = response;
+                timecodes = response;
             }
+            console.log(timecodes);
             for (let player of players) {
                 const response = [];
-                for (let timecode of timecodes.concat(...teams.find(team => team.id == player.team.id).data.timecode)) {
+                for (let timecode of timecodes) {
                     response.push(structuredClone(timecode));
                     if (team_ids.includes(player.team.id)) {
                         const changes_add = teams.find(team => team.id == player.team.id).data.changes.add;
                         response.at(-1).from = add(timecode.from, changes_add);
                         response.at(-1).to = timecode.to.startsWith('-') ? timecode.to : add(timecode.to, changes_add);
                     }
-                    if (timecode.to.startsWith('-')) {
+                    if (timecode.to == '09:99:99') {
                         const video = document.createElement('video');
                         video.setAttribute('src', 'https://video1.anilib.me/.%D0%B0s/' + player.video.quality.at(-1).href);
                         await new Promise(resolve => (video.onloadeddata = () => resolve()));
-                        let seconds = video.duration + +timecode.to;
-                        response.at(-1).to = toTime(seconds);
+                        response.at(-1).to = add('00:00', Math.floor(video.duration));
                     }
                 }
-                if (JSON.stringify(timecodes) != JSON.stringify(response)) {
+                response.push(...teams.find(team => team.id == player.team.id)?.data?.timecode || []);
+                if (JSON.stringify(original) != JSON.stringify(response)) {
                     put_request(player.id, response);
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
             }
 
@@ -798,19 +798,8 @@ async function createPanel() {
 }
 
 
-async function run_timecode_event() {
-    if (!/https:\/\/anilib\.me\/ru\/anime\/\d{1,6}--[a-z-]{1,50}\/episodes\/\d{1,8}\/player\/\d{1,8}/g.exec(document.URL)) return;
-    const root = document.getElementsByClassName('popup-root')[0];
-    if (!root) return;
-    const observer = new MutationObserver(async el => {
-        if (el[0].addedNodes.length && !el[0].previousSibling.childNodes.length) await createPanel()
-    });
-    observer.observe(root, { childList: true });
-}
-
-
 function address_check() {
-    return !!(/https:\/\/anilib\.me\/ru\/anime\/\d{1,6}--[a-z-]{1,50}\/episodes\/\d{1,8}\/player\/\d{1,8}/g.exec(document.URL));
+    return !!(/https:\/\/anilib\.me\/ru\/anime\/\d{1,10}--[a-z-]+\/episodes\/\d{1,10}\/player\/\d{1,10}/g.exec(document.URL));
 }
 
 
