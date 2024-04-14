@@ -1,2 +1,13 @@
-node_modules/
-package.json
+# dependencies
+/node_modules
+
+# misc
+.env
+
+# builds
+/build
+*.zip
+
+# editors
+.vscode
+.idea

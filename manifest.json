@@ -1,18 +1,41 @@
 {
-    "manifest_version": 3,
-    "name": "MangaLib Extension",
-    "version": "1.0",
-    "description": "Описание вашего плагина",
-    "content_scripts": [
-      {
-        "matches": [
-          "https://anilib.me/ru/anime/*",
-          "https://anilib.me/*"
-        ],
-        "js": [
-          "utilities/timecodes.js"
-        ]
-      }
-    ],
-    "permissions": ["tabs"]
-  }
+  "manifest_version": 3,
+  "name": "MangaLib Extension",
+  "version": "1.1.0",
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://lib.social/*",
+        "https://animelib.me/*",
+        "https://mangalib.me/*",
+        "https://ranobelib.me/*",
+        "https://hentailib.me/*",
+        "https://slastlib.me/*",
+        "https://test-front.animelib.me/*",
+        "https://test-front.mangalib.me/*",
+        "https://test-front.ranobelib.me/*",
+        "https://test-front.hentailib.me/*",
+        "https://test-front.slastlib.me/*"
+      ],
+      "js": [
+        "index.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "48": "assets/icons/icon-48.png"
+    },
+    "default_popup": "popup.html",
+    "icon": "assets/icons/icon-48.png"
+  },
+  "permissions": [
+    "storage"
+  ]
+}

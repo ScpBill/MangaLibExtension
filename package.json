@@ -1,0 +1,67 @@
+{
+  "name": "mangalib-extension",
+  "version": "0.1.0",
+  "author": {
+    "name": "Rin Nohara"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:production": "cross-env NODE_ENV=production node scripts/build.js",
+    "build:development": "cross-env NODE_ENV=development node scripts/build.js",
+    "build": "npm run build:production"
+  },
+  "dependencies": {
+    "@babel/preset-env": "^7.24.4",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "babel-loader": "^9.1.3",
+    "clean-webpack-plugin": "^4.0.0",
+    "eslint-plugin": "^1.0.1",
+    "eslint-plugin-plugin": "^0.0.12",
+    "eslint-plugin-unused-imports": "^3.1.0",
+    "fs-extra": "^11.2.0",
+    "html-loader": "^5.0.0",
+    "html-webpack-plugin": "^5.6.0",
+    "http-proxy-middleware": "^3.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^5.3.11",
+    "terser-webpack-plugin": "^5.3.10",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.91.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.0.2",
+    "@eslint/js": "^9.0.0",
+    "@types/react": "^18.2.75",
+    "@types/styled-components": "^5.1.34",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "copy-webpack-plugin": "^12.0.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.34.1",
+    "globals": "^15.0.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.6.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
