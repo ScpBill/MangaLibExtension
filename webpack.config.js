@@ -107,7 +107,11 @@ const options = {
               JSON.stringify({
                 description: process.env.npm_package_description,
                 version: process.env.npm_package_version,
-                ...JSON.parse(content.toString()),
+                ...(() => {
+                  const result = JSON.parse(content.toString());
+                  result['content_scripts'][0]['js'] = glob.sync('./src/extensions/*/index.ts').map((pathes) => `${pathes.split('/').at(-2)}.js`);
+                  return result;
+                })(),
               }),
             );
           },
