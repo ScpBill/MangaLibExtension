@@ -12,20 +12,18 @@
     {
       "matches": [
         "https://lib.social/*",
-        "https://animelib.me/*",
+        "https://anilib.me/*",
         "https://mangalib.me/*",
         "https://ranobelib.me/*",
         "https://hentailib.me/*",
-        "https://slastlib.me/*",
-        "https://test-front.animelib.me/*",
+        "https://slashlib.me/*",
+        "https://test-front.anilib.me/*",
         "https://test-front.mangalib.me/*",
         "https://test-front.ranobelib.me/*",
         "https://test-front.hentailib.me/*",
-        "https://test-front.slastlib.me/*"
+        "https://test-front.slashlib.me/*"
       ],
-      "js": [
-        "index.js"
-      ]
+      "js": []
     }
   ],
   "action": {

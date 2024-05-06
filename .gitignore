@@ -4,8 +4,13 @@
 # misc
 .env
 
+# tests
+tests/
+test/
+
 # builds
 /build
+/dist
 *.zip
 
 # editors

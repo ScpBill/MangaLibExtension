@@ -1,14 +1,16 @@
 import webpack from 'webpack';
 import path from 'path';
+import glob from 'glob';
 import fileSystem from 'fs-extra';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import FriendlyErrorsWebpackPlugin from 'friendly-errors-webpack-plugin';
 
 
 const replaceGlobs = (path) => path.replace(/(\/\*\*)*\/\*$/, '');
 
-function tsconfigPathsConverter(tsConfigPath, dirname = '.') {
+function tsconfigPathsConverter (tsConfigPath, dirname = '.') {
   const tsConfig = JSON.parse(fileSystem.readFileSync(tsConfigPath).toString());
   const { baseUrl, paths = {} } = tsConfig.compilerOptions;
   return Object.keys(paths).reduce((aliases, pathName) => {
@@ -19,6 +21,14 @@ function tsconfigPathsConverter(tsConfigPath, dirname = '.') {
   }, {});
 }
 
+function entryGenerate () {
+  const entry = {};
+  for (const pathes of glob.sync('./src/extensions/*/index.ts')) {
+    entry[pathes.split('/').at(-2)] = path.resolve(`./src/extensions/${pathes.split('/').at(-2)}/${pathes.split('/').at(-1)}`);
+  }
+  return entry;
+}
+
 
 const ASSET_PATH = process.env.ASSET_PATH || '/';
 const fileExtensions = [ 'jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'ttf', 'woff', 'woff2' ];
@@ -26,10 +36,7 @@ const fileExtensions = [ 'jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'ttf', 'woff
 
 const options = {
   mode: process.env.NODE_ENV || 'development',
-  entry: {
-    index: path.resolve('./src/index.tsx'),
-    background: path.resolve('./src/background.ts'),
-  },
+  entry: entryGenerate(),
   output: {
     filename: '[name].js',
     path: path.resolve('./dist'),
@@ -55,12 +62,17 @@ const options = {
       },
       {
         test: /\.css$/,
-        loader: 'css-loader',
+        use: [ 'style-loader', 'css-loader' ],
       },
       {
         test: /\.svg$/,
-        issuer: /\.[jt]sx?%/,
-        loader: '@svgr/webpack',
+        issuer: /\.[jt]sx?$/,
+        use: [
+          {
+            loader: '@svgr/webpack',
+            options: { svgo: false },
+          },
+        ],
       },
       {
         test: /\.html$/,
@@ -82,7 +94,7 @@ const options = {
     new CleanWebpackPlugin({ verbose: false }),
     new webpack.ProgressPlugin(),
     // expose and write the allowed env vars on the compiled bundle
-    new webpack.EnvironmentPlugin([ 'NODE_ENV' ]),
+    new webpack.EnvironmentPlugin(['NODE_ENV']),
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -109,14 +121,12 @@ const options = {
           to: path.resolve('./dist'),
           force: true,
           filter: function (resolvePath) {
-            return ![
-              path.resolve('./src/index.tsx'),
-              path.resolve('./src/background.ts')
-            ].includes(path.resolve(resolvePath));
+            return fileExtensions.includes(resolvePath.split('.').at(-1));
           },
         },
       ],
     }),
+    new FriendlyErrorsWebpackPlugin(),
   ],
   infrastructureLogging: {
     level: 'info',
@@ -126,10 +136,11 @@ const options = {
     minimize: true,
     minimizer: [
       new TerserPlugin({
-        extractComments: false
+        extractComments: false,
       }),
     ],
   },
+  stats: 'none',
 };
 
 

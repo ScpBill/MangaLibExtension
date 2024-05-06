@@ -14,7 +14,7 @@ const compat = new FlatCompat({ baseDirectory: __dirname, recommendedConfig: plu
 const options = [
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
   ...compat.extends('standard-with-typescript'),
-  ...tseslint.configs.recommended
+  ...tseslint.configs.recommended,
 ];
 
 export default options;
