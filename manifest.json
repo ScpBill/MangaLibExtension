@@ -23,7 +23,9 @@
         "https://test-front.hentailib.me/*",
         "https://test-front.slashlib.me/*"
       ],
-      "js": []
+      "js": [],
+      "world": "MAIN",
+      "run_at": "document_start"
     }
   ],
   "action": {
@@ -33,7 +35,5 @@
     "default_popup": "popup.html",
     "icon": "assets/icons/icon-48.png"
   },
-  "permissions": [
-    "storage"
-  ]
+  "permissions": []
 }

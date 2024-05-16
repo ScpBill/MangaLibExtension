@@ -1,4 +1,4 @@
-declare interface AnimeSchedule {
+declare interface AnimeResponseWithShedule {
   data: {
     id: number,
     name: string,

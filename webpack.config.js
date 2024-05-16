@@ -1,6 +1,7 @@
 import webpack from 'webpack';
 import path from 'path';
 import glob from 'glob';
+import fs from 'fs';
 import fileSystem from 'fs-extra';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
@@ -21,12 +22,39 @@ function tsconfigPathsConverter (tsConfigPath, dirname = '.') {
   }, {});
 }
 
-function entryGenerate () {
-  const entry = {};
-  for (const pathes of glob.sync('./src/extensions/*/index.ts')) {
-    entry[pathes.split('/').at(-2)] = path.resolve(`./src/extensions/${pathes.split('/').at(-2)}/${pathes.split('/').at(-1)}`);
+
+function transform (content) {
+  const buffer = JSON.parse(content.toString());
+  buffer['content_scripts'][0]['js'] = [];
+  for (const dirname of fs.readdirSync('./src/extensions')) {
+    if (fs.existsSync(`./src/extensions/${dirname}/index.ts`) || fs.existsSync(`./src/extensions/${dirname}/index.tsx`)) {
+      buffer['content_scripts'][0]['js'].push(`${dirname}/index.js`);
+    }
+    if (fs.existsSync(`./src/extensions/${dirname}/background.ts`) || fs.existsSync(`./src/extensions/${dirname}/background.tsx`)) {
+      buffer['content_scripts'][0]['js'].push(`${dirname}/background.js`);
+    }
   }
-  return entry;
+  return Buffer.from(
+    JSON.stringify({
+      description: process.env.npm_package_description,
+      version: process.env.npm_package_version,
+      ...buffer,
+    }),
+  );
+}
+
+
+const entry = {};
+for (const dirname of fs.readdirSync(path.resolve('./src/extensions'))) {
+  const absolute = (filename) => path.join(path.resolve('./src/extensions'), dirname, filename);
+
+  if (fs.existsSync(absolute('index.ts')) && fs.existsSync(absolute('index.tsx'))) throw new Error('conflict between two files named index');
+  else if (fs.existsSync(absolute('index.ts'))) entry[`${dirname}/index`] = absolute('index.ts');
+  else if (fs.existsSync(absolute('index.tsx'))) entry[`${dirname}/index`] = absolute('index.tsx');
+
+  if (fs.existsSync(absolute('background.ts')) && fs.existsSync(absolute('background.tsx'))) throw new Error('conflict between two files named background');
+  else if (fs.existsSync(absolute('background.ts'))) entry[`${dirname}/background`] = absolute('background.ts');
+  else if (fs.existsSync(absolute('background.tsx'))) entry[`${dirname}/background`] = absolute('background.tsx');
 }
 
 
@@ -36,7 +64,7 @@ const fileExtensions = [ 'jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'ttf', 'woff
 
 const options = {
   mode: process.env.NODE_ENV || 'development',
-  entry: entryGenerate(),
+  entry,
   output: {
     filename: '[name].js',
     path: path.resolve('./dist'),
@@ -101,20 +129,7 @@ const options = {
           from: path.resolve('./manifest.json'),
           to: path.resolve('./dist'),
           force: true,
-          transform: function (content) {
-            // generates the manifest file using the package.json informations
-            return Buffer.from(
-              JSON.stringify({
-                description: process.env.npm_package_description,
-                version: process.env.npm_package_version,
-                ...(() => {
-                  const result = JSON.parse(content.toString());
-                  result['content_scripts'][0]['js'] = glob.sync('./src/extensions/*/index.ts').map((pathes) => `${pathes.split('/').at(-2)}.js`);
-                  return result;
-                })(),
-              }),
-            );
-          },
+          transform,
         },
       ],
     }),
