@@ -15,7 +15,7 @@
 })(window.history);
 
 
-// Replace default fetch request method
+// Replace default fetch request methods
 (function () {
   const open = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function (
@@ -28,11 +28,24 @@
   ) {
     if (/^https:\/\/api\.lib\.social\/api\/?/.test(url.toString())) {
       this.addEventListener('readystatechange', function () {
-        if (this.readyState === 4) {
-          window.dispatchEvent(new CustomEvent('xmlresponseloaded', { detail: { type: 'url', url, response: this.response } }));
-        }
+        if (this.readyState !== 4) return;
+        window.dispatchEvent(new CustomEvent('responseloaded', { detail: { type: 'url', url, response: this.response } }));
       });
     }
     open.call(this, method, url, async, username, password);
+  };
+})();
+
+(function () {
+  const fetch = window.fetch;
+  window.fetch = async function (input: URL | RequestInfo, init?: RequestInit | undefined) {
+    const url = input instanceof Request ? input.url : input.toString();
+    if (/^https:\/\/api\.lib\.social\/api\/?/.test(url)) {
+      const response = await fetch(input, init);
+      const data = await response.clone().json();
+      window.dispatchEvent(new CustomEvent('responseloaded', { detail: { type: 'url', url, response: data } }));
+      return response;
+    }
+    return fetch(input, init);
   };
 })();

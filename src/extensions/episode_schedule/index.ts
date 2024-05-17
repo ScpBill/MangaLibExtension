@@ -17,7 +17,7 @@ window.addEventListener('urlchange', () => {
     handler();
   }
 });
-window.addEventListener('xmlresponseloaded', (event) => {
+window.addEventListener('responseloaded', (event) => {
   if (
     event instanceof CustomEvent
     && event.detail.type === 'url'
