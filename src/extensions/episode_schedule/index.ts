@@ -1,5 +1,5 @@
 import { page_info, modal_info, modal_watch } from './observer';
-import { waitForLoading } from '../../utils';
+import { waitForDOMLoading } from '../../utils';
 
 
 // Initialize and export the variables
@@ -46,12 +46,12 @@ function addressCheck (): 'info' | 'watch' | undefined {
 async function handler () {
   switch (addressCheck()) {
     case 'info':
-      await waitForLoading();
+      await waitForDOMLoading();
       page_info.observe(document, { childList: true, subtree: true });
       modal_info.observe(document, { childList: true, subtree: true });
       break;
     case 'watch':
-      await waitForLoading();
+      await waitForDOMLoading();
       if (!anime_response) anime_response = await (await window.fetch(`https://api.lib.social/api/anime/${document.URL.match(/anime\/(\d+--[\w\d-]+)/)?.[1]}?fields[]=episodesSchedule`)).json();
       modal_watch.observe(document, { childList: true, subtree: true });
       break;

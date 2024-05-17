@@ -1,4 +1,4 @@
-export async function waitForLoading () {
+export async function waitForDOMLoading () {
   if (document.readyState !== 'loading') return;
   return new Promise((resolve) => document.addEventListener('loading', resolve));
 }
