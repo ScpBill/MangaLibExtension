@@ -1,5 +1,5 @@
 import { page_info, modal_info, modal_watch } from './observer';
-import { waitForLoading } from './utils';
+import { waitForLoading } from '../../utils';
 
 
 // Initialize and export the variables

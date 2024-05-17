@@ -1,4 +1,4 @@
-import { enumerate, formatDateString } from './utils';
+import { enumerate, formatDateString } from '../../utils';
 import { anime_response } from '.';
 
 
