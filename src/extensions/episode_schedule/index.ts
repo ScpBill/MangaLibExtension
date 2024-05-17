@@ -20,6 +20,7 @@ window.addEventListener('urlchange', () => {
 window.addEventListener('xmlresponseloaded', (event) => {
   if (
     event instanceof CustomEvent
+    && event.detail.type === 'url'
     && /^https:\/\/api\.lib\.social\/api\/anime\/\d+--[\w\d-]+/.test(event.detail.url.toString())
     && event.detail.url.toString().includes('fields[]=episodesSchedule')
   ) {

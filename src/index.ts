@@ -29,7 +29,7 @@
     if (/^https:\/\/api\.lib\.social\/api\/?/.test(url.toString())) {
       this.addEventListener('readystatechange', function () {
         if (this.readyState === 4) {
-          window.dispatchEvent(new CustomEvent('xmlresponseloaded', { detail: { url, response: this.response } }));
+          window.dispatchEvent(new CustomEvent('xmlresponseloaded', { detail: { type: 'url', url, response: this.response } }));
         }
       });
     }
