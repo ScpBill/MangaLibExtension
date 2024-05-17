@@ -22,7 +22,6 @@ window.addEventListener('xmlresponseloaded', (event) => {
     event instanceof CustomEvent
     && event.detail.type === 'url'
     && /^https:\/\/api\.lib\.social\/api\/anime\/\d+--[\w\d-]+\?([^&]*&)*(fields\[\]=episodesSchedule)(&[^&]*)*$/.test(event.detail.url.toString())
-    && event.detail.url.toString().includes('fields[]=episodesSchedule')
   ) {
     anime_response = event.detail.response;
     handler();
