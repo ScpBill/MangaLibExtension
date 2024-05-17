@@ -1,6 +1,5 @@
 import webpack from 'webpack';
 import path from 'path';
-import glob from 'glob';
 import fs from 'fs';
 import fileSystem from 'fs-extra';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
@@ -25,15 +24,8 @@ function tsconfigPathsConverter (tsConfigPath, dirname = '.') {
 
 function transform (content) {
   const buffer = JSON.parse(content.toString());
-  buffer['content_scripts'][0]['js'] = [];
-  for (const dirname of fs.readdirSync('./src/extensions')) {
-    if (fs.existsSync(`./src/extensions/${dirname}/index.ts`) || fs.existsSync(`./src/extensions/${dirname}/index.tsx`)) {
-      buffer['content_scripts'][0]['js'].push(`${dirname}/index.js`);
-    }
-    if (fs.existsSync(`./src/extensions/${dirname}/background.ts`) || fs.existsSync(`./src/extensions/${dirname}/background.tsx`)) {
-      buffer['content_scripts'][0]['js'].push(`${dirname}/background.js`);
-    }
-  }
+  buffer['content_scripts'][0]['js'] = push(buffer['content_scripts'][0]['js'], './src', '');
+  fs.readdirSync('./src/extensions').forEach((dirname) => buffer['content_scripts'][0]['js'] = push(buffer['content_scripts'][0]['js'], `./src/extensions/${dirname}`, dirname));
   return Buffer.from(
     JSON.stringify({
       description: process.env.npm_package_description,
@@ -44,18 +36,32 @@ function transform (content) {
 }
 
 
-const entry = {};
-for (const dirname of fs.readdirSync(path.resolve('./src/extensions'))) {
-  const absolute = (filename) => path.join(path.resolve('./src/extensions'), dirname, filename);
-
-  if (fs.existsSync(absolute('index.ts')) && fs.existsSync(absolute('index.tsx'))) throw new Error('conflict between two files named index');
-  else if (fs.existsSync(absolute('index.ts'))) entry[`${dirname}/index`] = absolute('index.ts');
-  else if (fs.existsSync(absolute('index.tsx'))) entry[`${dirname}/index`] = absolute('index.tsx');
-
-  if (fs.existsSync(absolute('background.ts')) && fs.existsSync(absolute('background.tsx'))) throw new Error('conflict between two files named background');
-  else if (fs.existsSync(absolute('background.ts'))) entry[`${dirname}/background`] = absolute('background.ts');
-  else if (fs.existsSync(absolute('background.tsx'))) entry[`${dirname}/background`] = absolute('background.tsx');
+function push (list, input, output, names = [ 'index', 'background' ]) {
+  const absolute = (filename) => path.join(path.resolve(input), filename);
+  const isExists = (filepath) => [ 'ts', 'tsx' ].some((ext) => fs.existsSync(`${filepath}.${ext}`));
+  for (const name of names) {
+    if (isExists(absolute(name))) list.push(path.join(output, `${name}.js`).replace('\\', '/'));
+  }
+  return list;
 }
+
+
+function append (dict, input, output, names = [ 'index', 'background' ]) {
+  const absolute = (filename) => path.join(path.resolve(input), filename);
+  const isExists = (filename) => fs.existsSync(absolute(filename));
+  for (const name of names) {
+    if (!isExists(`${name}.ts`))
+      if (isExists(`${name}.tsx`)) dict[path.join(output, name)] = absolute(`${name}.tsx`);
+      else continue;
+    else if (!isExists('index.tsx')) dict[path.join(output, name)] = absolute(`${name}.ts`);
+    else throw new Error('conflict between two files named index');
+  }
+}
+
+
+const entry = {};
+append(entry, `./src`, '');
+fs.readdirSync(path.resolve('./src/extensions')).forEach((dirname) => append(entry, `./src/extensions/${dirname}`, dirname));
 
 
 const ASSET_PATH = process.env.ASSET_PATH || '/';

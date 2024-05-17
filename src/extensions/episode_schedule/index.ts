@@ -1,4 +1,3 @@
-import './override';
 import { page_info, modal_info, modal_watch } from './observer';
 import { waitForLoading } from './utils';
 
@@ -18,9 +17,15 @@ window.addEventListener('urlchange', () => {
     handler();
   }
 });
-window.addEventListener('responseloaded', (event) => {
-  anime_response = (event as CustomEvent).detail;
-  handler();
+window.addEventListener('xmlresponseloaded', (event) => {
+  if (
+    event instanceof CustomEvent
+    && /^https:\/\/api\.lib\.social\/api\/anime\/\d+--[\w\d-]+/.test(event.detail.url.toString())
+    && event.detail.url.toString().includes('fields[]=episodesSchedule')
+  ) {
+    anime_response = event.detail.response;
+    handler();
+  }
 });
 
 

@@ -26,10 +26,10 @@
     username?: string | null,
     password?: string | null,
   ) {
-    if (/^https:\/\/api\.lib\.social\/api\/anime\/\d+--[\w\d-]+/.test(url.toString()) && url.toString().includes('fields[]=episodesSchedule')) {
+    if (/^https:\/\/api\.lib\.social\/api\/?/.test(url.toString())) {
       this.addEventListener('readystatechange', function () {
         if (this.readyState === 4) {
-          window.dispatchEvent(new CustomEvent('responseloaded', { detail: this.response }));
+          window.dispatchEvent(new CustomEvent('xmlresponseloaded', { detail: { url, response: this.response } }));
         }
       });
     }
