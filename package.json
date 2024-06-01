@@ -55,6 +55,7 @@
     "file-loader": "^6.2.0",
     "friendly-errors-webpack-plugin": "^1.7.0",
     "globals": "^15.0.0",
+    "raw-loader": "^4.0.2",
     "react-input-mask": "^2.0.4",
     "style-loader": "^4.0.0",
     "svg-url-loader": "^8.0.0",

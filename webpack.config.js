@@ -96,7 +96,7 @@ const options = {
       },
       {
         test: /\.css$/,
-        use: [ 'style-loader', 'css-loader' ],
+        use: 'raw-loader',
       },
       {
         test: /\.svg$/,
