@@ -1,7 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { waitForDOMLoading } from '../../utils';
-import ModalBody from './modals/main';
+import { TimecodeModalBody } from './modals/main';
+import styles from './index.css';
 
 
 let players_data: EpisodeResponse['data']['players'] | undefined;
@@ -34,6 +35,14 @@ window.addEventListener('responseloaded', (event: Event) => {
 });
 
 
+// Wait when DOM loaded to insert styles to head of document
+waitForDOMLoading().then(() => {
+  const style = document.createElement('style');
+  style.textContent = styles;
+  document.head.appendChild(style);
+});
+
+
 // Keep eye the document mutations to track down of the modal
 const observer = new MutationObserver((mutationList) => {
   for (const mutation of mutationList) {
@@ -50,11 +59,7 @@ const observer = new MutationObserver((mutationList) => {
 
       // Render modal component
       const root = createRoot(node.querySelector('.popup-body')!);
-      root.render(<ModalBody/>);
+      root.render(<TimecodeModalBody/>);
     }
   }
 });
-
-
-// https://api.lib.social/api/episodes/22034?video_status=1&with_moderated=1
-// https://api.lib.social/api/episodes?anime_id=7108--jojo-no-kimyou-na-bouken-tv-anime

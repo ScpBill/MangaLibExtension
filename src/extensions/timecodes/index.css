@@ -1,0 +1,43 @@
+.plugin-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  padding: 14px 0;
+  margin-top: 20px;
+}
+
+.preset-header {
+  color: currentColor;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.preset-header-interactive {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: currentColor;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  justify-content: space-between;
+  flex-grow: 1;
+}
+
+.header-icons {
+  position: relative;
+  display: inline-flex;
+}
+
+.grid-cards {
+  padding: 4px 8px;
+  gap: 0;
+  grid-template-columns: repeat(2);
+}
+
+.card-item {
+  padding: 8px;
+}

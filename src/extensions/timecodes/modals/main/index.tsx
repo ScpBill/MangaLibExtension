@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { players_data } from '..';
-import TimecodeBlock from './timecode/timecode';
-import GeneralBlock from './timecode/general';
+import React, { useState, useEffect } from 'react';
+import { players_data } from '../..';
+import { TimecodeBlock } from './blocks/timecode';
+import { GeneralBlock } from './blocks/general';
+import { AdvanceBlock } from './blocks/advance';
+import { storage as Storage } from '../../utils/storage';
 
 
-const ModalBody: React.FC = () => {
+export const TimecodeModalBody: React.FC = () => {
   const [ , episode_id, player_id ] = document.location.pathname.match(/^\/ru\/anime\/\d+--[\w\d-]+\/episodes\/(\d+)\/player\/(\d+)\/?$/)!;
   const [ timecodes, setTimecodes ] = useState(players_data?.find((player) => player.id === +player_id)?.timecode as Timecode[] ?? []);
+  const [ storage, setStorage ] = useState(Storage.get());
   const [ options, setOptions ] = useState({
     for_one_team: true,
     includes_to_episode: {
@@ -14,12 +17,14 @@ const ModalBody: React.FC = () => {
       id: episode_id,
     },
   });
+
+  useEffect(() => {
+    Storage.set(storage);
+  }, [storage]);
+
   return <>
     <TimecodeBlock data={ timecodes } onchange={ setTimecodes }/>
-    {/* <PluginBlock data={  } onchange={  }/> */}
+    <AdvanceBlock data={ storage } onchange={ setStorage }/>
     <GeneralBlock data={ options } onchange={ setOptions } onsave={ () => null }/>
   </>;
 };
-
-
-export default ModalBody;

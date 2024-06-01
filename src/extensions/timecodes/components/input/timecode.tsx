@@ -6,7 +6,9 @@ interface Props {
   data: string,
   onchange: (value: string) => void,
 }
-const TimecodeInlineInput: React.FC<Props> = ({ mode, data, onchange }) => {
+
+export const TimecodeInlineInput: React.FC<Props> = ({ mode, data, onchange }) => {
+
   const InputChangeHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     let inputValue = event.target.value.replace(/[^0-9-]/g, '');
     if (inputValue.startsWith('-') ? inputValue.slice(1).includes('-') : inputValue.includes('-')) return;
@@ -44,10 +46,10 @@ const TimecodeInlineInput: React.FC<Props> = ({ mode, data, onchange }) => {
 
     onchange(data);
   };
-  return <div className='form-input'>
-    <input className='form-input__field' type='text' inputMode='decimal' placeholder={ mode === 'from' ? 'От' : 'До' } value={ data } onChange={ InputChangeHandler }/>
-  </div>;
+
+  return (
+    <div className='form-input'>
+      <input className='form-input__field' type='text' inputMode='decimal' placeholder={ mode === 'from' ? 'От' : 'До' } value={ data } onChange={ InputChangeHandler }/>
+    </div>
+  );
 };
-
-
-export default TimecodeInlineInput;

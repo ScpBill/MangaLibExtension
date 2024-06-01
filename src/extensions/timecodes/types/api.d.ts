@@ -80,3 +80,70 @@ interface Timecode {
   from: string,
   to: string
 }
+
+
+interface ExtensionStorage {
+  config: ExtensionConfig
+  teams: ExtensionTeamConfig[]
+  titles: ExtensionTitleConfig[]
+}
+
+interface ExtensionConfig {
+  collapsed: boolean
+}
+
+interface ExtensionTeamConfig {
+  id: number
+  slug: string
+  slug_url: string
+  name: string
+  rules: ExtensionRuleConfig[]
+}
+
+interface ExtensionRuleConfig {
+  id: number
+  insertions: [{
+    position: 'after' | 'before'
+    regarding: 'start' | 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen' | 'end'
+    type: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen'
+    duration: number
+    shift: number
+  }]
+  overrides: [{
+    origin: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen'
+    type: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen'
+    start: number
+    end: number
+  }]
+  display: {
+    name: string
+    img: null | {
+      url: string
+      position_x: number
+      position_y: number
+    }
+    gif: null | {
+      url: string
+      position_x: number
+      position_y: number
+    }
+  }
+}
+
+interface ExtensionTitleConfig {
+  id: number
+  slug: string
+  slug_url: string
+  settings: {
+    teams: [{
+      [slug_url: string]: number[]
+    }]
+    fixed: [{
+      timecode: {
+        type: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen'
+        from: string
+        to: string
+      }
+    }]
+  }
+}

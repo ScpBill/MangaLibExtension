@@ -1,6 +1,6 @@
 export async function waitForDOMLoading () {
   if (document.readyState !== 'loading') return;
-  return new Promise((resolve) => document.addEventListener('loading', resolve));
+  return new Promise((resolve) => document.addEventListener('DOMContentLoaded', resolve));
 }
 
 export function* enumerate<T> (iterable: Iterable<T>): Generator<[number, T]> {
