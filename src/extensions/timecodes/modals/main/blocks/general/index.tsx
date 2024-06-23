@@ -23,7 +23,7 @@ interface Props {
 export const GeneralBlock: React.FC<Props> = ({ data, onchange, onsave }) => {
   const [ disabledState, setDisabledState ] = useState(!data.includes_to_episode.status);
   return (
-    <div style={({ marginTop: 'auto' })}>
+    <div className='general-block'>
       <GeneralInfoLabel text='При включении опций ниже также будет учтён текущий эпизод'/>
       <div className='form-group _offset'>
         <div style={({ display: 'flex', alignItems: 'flex-start', gap: '6px' })}>

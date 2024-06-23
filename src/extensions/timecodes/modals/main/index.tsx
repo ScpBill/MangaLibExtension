@@ -7,7 +7,7 @@ import { storage as Storage } from '../../utils/storage';
 
 
 export const TimecodeModalBody: React.FC = () => {
-  const [ , episode_id, player_id ] = document.location.pathname.match(/^\/ru\/anime\/\d+--[\w\d-]+\/episodes\/(\d+)\/player\/(\d+)\/?$/)!;
+  const [ , anime_slug_url, episode_id, player_id ] = document.location.pathname.match(/^\/ru\/anime\/(\d+--[\w\d-]+)\/episodes\/(\d+)\/player\/(\d+)\/?$/)!;
   const [ timecodes, setTimecodes ] = useState(players_data?.find((player) => player.id === +player_id)?.timecode as Timecode[] ?? []);
   const [ storage, setStorage ] = useState(Storage.get());
   const [ options, setOptions ] = useState({
@@ -22,9 +22,11 @@ export const TimecodeModalBody: React.FC = () => {
     Storage.set(storage);
   }, [storage]);
 
-  return <>
-    <TimecodeBlock data={ timecodes } onchange={ setTimecodes }/>
-    <AdvanceBlock data={ storage } onchange={ setStorage }/>
-    <GeneralBlock data={ options } onchange={ setOptions } onsave={ () => null }/>
-  </>;
+  return (
+    <div className='content-block'>
+      <TimecodeBlock data={ timecodes } onchange={ setTimecodes }/>
+      <AdvanceBlock anime_slug_url={ anime_slug_url } data={ storage } onchange={ setStorage }/>
+      <GeneralBlock data={ options } onchange={ setOptions } onsave={ () => null }/>
+    </div>
+  );
 };

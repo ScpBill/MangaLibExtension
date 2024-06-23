@@ -1,43 +1,99 @@
-.plugin-header {
-  position: relative;
+.content-block {
+  height: calc(100vh - 62px);
+  display: flex;
+  flex-direction: column;
+}
+
+.general-block {
+  margin-top: 12px;
+}
+
+.scrollable-block {
+  overflow: auto;
+  margin-left: -20px;
+  margin-right: -20px;
+}
+
+.scrollable-block::-webkit-scrollbar {
+  display: auto; /*chrome*/
+}
+
+.advance-header {
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: auto;
+}
+
+.advance-header__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.advance-icon {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  color: var(--text-primary);
-  padding: 14px 0;
-  margin-top: 20px;
 }
 
-.preset-header {
-  color: currentColor;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
+.team-name-section {
+  margin: 0 0 8px;
   padding: 8px 0;
-}
-
-.preset-header-interactive {
   font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  color: currentColor;
-  display: inline-flex;
+  text-align: center;
+  word-wrap: break-word;
+  word-break: break-word;
+  background: var(--foreground-darken);
+}
+
+.team-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(190px, 230px));
+  padding: 0 10px;
+}
+
+.rule-card-item {
+  padding: 6px 10px;
+  background: var(--foreground);
+  border-radius: 6px;
+}
+
+.rule-card-buttons {
+  gap: 6px;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+.rule-card-cover {
+  padding-top: 52.75%;
+  border-radius: 6px;
+}
+
+.card-new-style {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  cursor: pointer;
-  justify-content: space-between;
-  flex-grow: 1;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: dashed 1px var(--border-base);
+  color: #8a8a8e;
+  color: var(--text-secondary);
+  text-align: center;
 }
 
-.header-icons {
-  position: relative;
-  display: inline-flex;
+.card-is-selected {
+  box-shadow: 0 0 0 3px var(--btn-primary-filled);
 }
 
-.grid-cards {
-  padding: 4px 8px;
-  gap: 0;
-  grid-template-columns: repeat(2);
-}
-
-.card-item {
-  padding: 8px;
+.card-is-not-selected {
+  opacity: 0.4;
 }
