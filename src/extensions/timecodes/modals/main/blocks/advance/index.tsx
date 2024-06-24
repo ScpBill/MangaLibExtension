@@ -27,6 +27,13 @@ export const AdvanceBlock: React.FC<Props> = ({ anime_slug_url, data, onchange }
       if (b.data?.rules?.length && !a.data?.rules?.length) return 1;
       return 0;
     })
+    const team_urls: string[] = [];
+    for (let i = 0; i < (sort?.length ?? 0); i++) {
+      if (team_urls.includes(sort![i].team.slug_url))
+        sort!.splice(i, 1);
+      else
+        team_urls.push(sort![i].team.slug_url);
+    }
     return sort?.map(({ team, data }, index) => {
       return <AdvanceTeamBlock
         key={ index }

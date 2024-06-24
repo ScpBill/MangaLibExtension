@@ -42,6 +42,29 @@ interface EpisodeResponse {
       translation_type: {
         id: number,
         label: string
+      },
+      video?: {
+        created_at: string,
+        id: number,
+        meta: {
+          original_name: string,
+          progress: [],
+          upload_name: null
+        },
+        moderated: {
+          id: number,
+          label: string
+        },
+        quality: [{
+          bitrate: number,
+          href: string,
+          quality: number
+        }],
+        status: {
+          id: number,
+          label: string
+        },
+        updated_at: string
       }
     }],
     season: string,
@@ -75,10 +98,29 @@ interface AnimeEpisodesResponse {
 }
 
 
+interface ToastResponse {
+  data: {
+    toast: {
+      type: string,
+      message: string
+    }
+  }
+}
+
+
 interface Timecode {
   type: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen',
   from: string,
   to: string
+}
+
+
+interface Options {
+  for_one_team: boolean,
+  includes_to_episode: {
+    status: boolean,
+    id: string
+  }
 }
 
 

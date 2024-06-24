@@ -12,6 +12,7 @@ export const GeneralSelectEpisode: React.FC<Props> = ({ value, onchange }) => {
   const SelectChangeEvent: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
     onchange(event.target.value);
   };
+  episodes_data?.splice(0, episodes_data?.findIndex((epidose) => epidose.id === +value));
 
   return (
     <div className='form-input size-xs'>

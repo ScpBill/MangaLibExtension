@@ -19,7 +19,7 @@ export const AdvanceCardBlock: React.FC<Props> = ({ anime_slug_url, data, onchan
   };
 
   const getCover = () => {
-    const render = (src: string) => <img src={ src } className='cover__img _loaded' loading='lazy'/>
+    const render = (src: string) => <img src={ src } className='cover__img _loaded cover-options' loading='lazy'/>
     if (data.display.gif) return render(data.display.gif.url);
     else if (data.display.img) return render(data.display.img.url);
     else return <div style={({ border: 'solid 1px var(--border-base);' })}/>

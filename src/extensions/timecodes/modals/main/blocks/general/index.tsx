@@ -6,18 +6,10 @@ import { FullWidthButton } from '../../../../components/buttons/fullwidth';
 import SaveSVG from '../../../../../../assets/svgs/save.svg';
 
 
-type configType = {
-  for_one_team: boolean,
-  includes_to_episode: {
-    status: boolean,
-    id: string
-  }
-}
-
 interface Props {
-  data: configType,
-  onchange: (value: configType) => void,
-  onsave: () => void,
+  data: Options,
+  onchange: (value: Options) => void,
+  onsave: () => Promise<void>,
 }
 
 export const GeneralBlock: React.FC<Props> = ({ data, onchange, onsave }) => {
