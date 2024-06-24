@@ -21,20 +21,21 @@ export async function save (
   if (options.for_one_team) {
     currentPlayer = getPlayerById(filteredPlayersData, player_id)!;
   } else {
-    unifyTimecodes = unify(player_id, filteredPlayersData, storage, timecodes);
+    currentPlayer = getPlayerById(filteredPlayersData, player_id)!;
+    unifyTimecodes = unify(timecodes, await getDuration(currentPlayer), anime_slug_url, currentPlayer.team.slug_url, storage);
   }
 
   // Apply timecodes for current episode
   if (options.for_one_team) {
-    const duration = await get_duration(currentPlayer!);
-    await send_request(token, player_id, {
+    const duration = await getDuration(currentPlayer!);
+    await sendRequest(token, player_id, {
       timecode: normal(timecodes, duration),
       applyTimecodesCurrentTeam: true,
     })
   } else {
     for (const player of filteredPlayersData) {
-      const duration = await get_duration(player);
-      await send_request(token, `${player.id}`, {
+      const duration = await getDuration(player);
+      await sendRequest(token, `${player.id}`, {
         timecode: modify(unifyTimecodes!, duration, anime_slug_url, player.team.slug_url, storage),
         applyTimecodesCurrentTeam: true,
       })
@@ -52,16 +53,16 @@ export async function save (
       if (options.for_one_team) {
         const player = getPlayerByTeam(newFilteredPlayersData, currentPlayer!.team.slug_url);
         if (player) {
-          const duration = await get_duration(player);
-          await send_request(token, `${player.id}`, {
+          const duration = await getDuration(player);
+          await sendRequest(token, `${player.id}`, {
             timecode: normal(timecodes, duration),
             applyTimecodesCurrentTeam: true,
           })
         }
       } else {
         for (const player of newFilteredPlayersData) {
-          const duration = await get_duration(player);
-          await send_request(token, `${player.id}`, {
+          const duration = await getDuration(player);
+          await sendRequest(token, `${player.id}`, {
             timecode: normal(modify(unifyTimecodes!, duration, anime_slug_url, player.team.slug_url, storage), duration),
             applyTimecodesCurrentTeam: true,
           })
@@ -95,7 +96,7 @@ interface body {
   applyTimcodesUntilEpisode?: number
   applyTimecodesCurrentTeam?: boolean
 }
-async function send_request (token: string, player_id: string, body: body) {
+async function sendRequest (token: string, player_id: string, body: body) {
   const response = await fetch(`https://api.lib.social/api/players/${player_id}/timecodes`, {
     method: 'PUT',
     body: JSON.stringify(body),
@@ -115,7 +116,7 @@ async function send_request (token: string, player_id: string, body: body) {
 }
 
 
-async function get_duration (
+async function getDuration (
   player: EpisodeResponse['data']['players'][0],
 ): Promise<number> {
   const video_href = player.video?.quality.at(-1)?.href;
@@ -144,17 +145,79 @@ function normal (
 }
 
 
-function unify (
-  player_id: string,
-  players_data: EpisodeResponse['data']['players'],
-  storage: ExtensionStorage,
+function getTimecodes (
   timecodes: Timecode[],
+  insertion: ExtensionRuleConfig['insertions'][0],
+  duration: number,
+): {
+  from?: string,
+  to?: string,
+  timeAtStart: number,
+  timeAtEnd: number,
+} | undefined {
+  let { from, to } = timecodes.find((timecode) => timecode.type === insertion.regarding) ?? {};
+  let timeAtStart: number, timeAtEnd: number;
+
+  switch (insertion.regarding) {
+    case 'start':
+      to = '00:00';
+      timeAtStart = 0;
+      timeAtEnd = -duration;
+      break;
+    case 'end':
+      from = '-00:00';
+      timeAtEnd = -0;
+      timeAtStart = duration;
+      break;
+    default:
+      if (from === undefined || to === undefined) return;
+      const timeCode = insertion.position === 'after' ? to : from;
+      if (timeCode.startsWith('-')) {
+        timeAtEnd = timeToSeconds(timeCode);
+        timeAtStart = timeAtEnd + duration;
+      } else {
+        timeAtStart = timeToSeconds(timeCode);
+        timeAtEnd = timeAtStart - duration;
+      }
+  }
+  return { from, to, timeAtStart, timeAtEnd };
+}
+
+
+function unify (
+  timecodes: Timecode[],
+  duration: number,
+  anime_slug_url: string,
+  team_slug_url: string,
+  storage: ExtensionStorage,
 ): Timecode[] {
   const result = copyOfArray(timecodes);
-  const team_slug_url = players_data.find((player) => player.id === +player_id)?.team?.slug_url;
   const team_rules = storage.teams.find((team) => team.slug_url === team_slug_url)?.rules;
   if (!team_rules) return result;
-  return result; // TODO
+  
+  for (const rule of team_rules) {
+    if (!rule.titles?.includes(anime_slug_url)) continue;
+
+    for (const ins of rule.insertions) {
+      const data = getTimecodes(result, ins, duration);
+      if (!data) continue;
+      const { timeAtStart, timeAtEnd } = data;
+
+      for (let i = 0; i < result.length; i++) {
+        if (result[i].from.startsWith('-'))
+          result[i].from = addSecondsToTime(result[i].from, ins.shift, timeAtEnd, timeAtEnd);
+        else
+          result[i].from = addSecondsToTime(result[i].from, -ins.shift, timeAtStart, timeAtStart);
+        if (result[i].to.startsWith('-'))
+          result[i].to = addSecondsToTime(result[i].to, ins.shift, timeAtEnd, timeAtEnd);
+        else
+          result[i].to = addSecondsToTime(result[i].to, -ins.shift, timeAtStart, timeAtStart);
+        if (result[i].from === result[i].to)
+          result.splice(i, 1);
+      }
+    }
+  }
+  return result;
 }
 
 
@@ -173,74 +236,37 @@ function modify (
     if (!rule.titles?.includes(anime_slug_url)) continue;
 
     for (const ins of rule.insertions) {
-      switch (ins.regarding) {
+      const data = getTimecodes(result, ins, duration);
+      if (!data) continue;
+      const { from, to, timeAtStart, timeAtEnd } = data;
 
-        case 'start':
-          for (let i = 0; i < result.length; i++) {
-            if (!result[i].from.startsWith('-'))
-              result[i].from = addSecondsToTime(result[i].from, ins.shift);
-            if (!result[i].to.startsWith('-'))
-              result[i].to = addSecondsToTime(result[i].to, ins.shift);
-          }
-          if (ins.duration && ins.position === 'after') {
-            result.push({
+      for (let i = 0; i < result.length; i++) {
+        if (result[i].from.startsWith('-'))
+          result[i].from = addSecondsToTime(result[i].from, -ins.shift, timeAtEnd);
+        else
+          result[i].from = addSecondsToTime(result[i].from, ins.shift, timeAtStart);
+        if (result[i].to.startsWith('-'))
+          result[i].to = addSecondsToTime(result[i].to, -ins.shift, timeAtEnd);
+        else
+          result[i].to = addSecondsToTime(result[i].to, ins.shift, timeAtStart);
+      }
+      if (ins.duration) {
+        switch (ins.position) {
+          case 'after':
+            if (to) result.push({
               type: ins.type,
-              from: secondsToTime(0),
-              to: secondsToTime(ins.duration)
-            });
-          }
-          break;
-        
-        case 'end':
-          for (let i = 0; i < result.length; i++) {
-            if (result[i].from.startsWith('-'))
-              result[i].from = addSecondsToTime(result[i].from, ins.shift);
-            if (result[i].to.startsWith('-'))
-              result[i].to = addSecondsToTime(result[i].to, ins.shift);
-          }
-          if (ins.duration && ins.position === 'before') {
-            result.push({
-              type: ins.type,
-              from: '-' + secondsToTime(ins.duration),
-              to: '-' + secondsToTime(0)
+              from: to,
+              to: addSecondsToTime(to, ins.duration)
             })
-          }
-          break;
-        
-        default:
-          const timecode = result.find((timecode) => timecode.type === ins.regarding);
-          if (!timecode) break;
-
-          const time = timeToSeconds(ins.position === 'after' ? timecode.to : timecode.from);
-          let start: number = time, end: number = time;
-          if (time < 0) start = time + duration;
-          else end = time - duration;
-
-          for (let i = 0; i < result.length; i++) {
-            if (result[i].from.startsWith('-')) {
-              result[i].from = addSecondsToTime(result[i].from, timeToSeconds(result[i].from) <= end ? -ins.shift : 0);
-              result[i].to = addSecondsToTime(result[i].to, timeToSeconds(result[i].to) <= end ? -ins.shift : 0);
-            } else {
-              result[i].from = addSecondsToTime(result[i].from, timeToSeconds(result[i].from) >= start ? ins.shift : 0);
-              result[i].to = addSecondsToTime(result[i].to, timeToSeconds(result[i].to) >= start ? ins.shift : 0);
-            }
-          }
-          if (ins.duration) {
-            switch (ins.position) {
-              case 'after':
-                result.push({
-                  type: ins.type,
-                  from: timecode.to,
-                  to: addSecondsToTime(timecode.to, ins.duration)
-                })
-              case 'before':
-                result.push({
-                  type: ins.type,
-                  from: addSecondsToTime(timecode.from, -ins.duration),
-                  to: timecode.from
-                })
-            }
-          }
+            break;
+          case 'before':
+            if (from) result.push({
+              type: ins.type,
+              from: addSecondsToTime(from, -ins.duration),
+              to: from
+            })
+            break;
+        }
       }
     }
   }

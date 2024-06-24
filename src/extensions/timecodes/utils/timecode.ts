@@ -9,8 +9,22 @@ export function localize_type (type: 'opening' | 'ending' | 'ost' | 'compilation
 }
 
 
-export function addSecondsToTime (time: string, seconds: number): string {
-  return secondsToTime(timeToSeconds(time) + seconds);
+export function addSecondsToTime (time: string, seconds: number, atSeconds: number | null = null, minSeconds: number | null = null): string {
+  const secTime = timeToSeconds(time);
+  if (atSeconds !== null) {
+    if (time.startsWith('-') && secTime > atSeconds)
+      return time;
+    if (!time.startsWith('-') && secTime < atSeconds)
+      return time;
+  }
+  let sum = secTime + seconds;
+  if (minSeconds !== null) {
+    if (time.startsWith('-') && sum > minSeconds)
+      sum = minSeconds;
+    if (!time.startsWith('-') && sum < minSeconds)
+      sum = minSeconds;
+  }
+  return secondsToTime(sum, time.startsWith('-'));
 }
 
 
@@ -26,7 +40,9 @@ export function timeToSeconds (time: string): number {
 }
 
 
-export function secondsToTime (seconds: number): string {
+export function secondsToTime (seconds: number, minusZero: boolean = false): string {
+  if (!seconds)
+    return (minusZero ? '-' : '') + '00:00';
   const minus = seconds < 0 ? '-' : '';
   if (minus === '-') seconds *= -1;
   const h = Math.floor(seconds / 3600);
