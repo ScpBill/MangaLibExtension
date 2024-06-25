@@ -6,7 +6,7 @@ interface EpisodeResponse {
     name: string,
     number: string,
     number_secondary: string,
-    players: [{
+    players: {
       created_at: string,
       episode_id: number,
       id: number,
@@ -66,7 +66,7 @@ interface EpisodeResponse {
         },
         updated_at: string
       }
-    }],
+    }[],
     season: string,
     status: {
       abbr: null | unknown,
@@ -79,7 +79,7 @@ interface EpisodeResponse {
 
 
 interface AnimeEpisodesResponse {
-  data: [{
+  data: {
     anime_id: number,
     created_at: string,
     id: number,
@@ -94,7 +94,7 @@ interface AnimeEpisodesResponse {
       label: string
     },
     type: string
-  }]
+  }[]
 }
 
 
@@ -139,19 +139,19 @@ interface ExtensionTeamConfig {
 }
 
 interface ExtensionRuleConfig {
-  insertions: [{
+  insertions: {
     position: 'after' | 'before'
     regarding: 'start' | 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen' | 'end'
     type: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen'
     duration: number
     shift: number
-  }]
-  overrides: [{
+  }[]
+  overrides: {
     origin: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen'
     type: 'opening' | 'ending' | 'ost' | 'compilation' | 'splashScreen'
     start: number
     end: number
-  }]
+  }[]
   display: {
     name: string | null
     img: null | {
@@ -161,5 +161,6 @@ interface ExtensionRuleConfig {
       url: string
     }
   },
-  titles?: string[]
+  titles?: string[],
+  onlyOnTitle?: string | null
 }

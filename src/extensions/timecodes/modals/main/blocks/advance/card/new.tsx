@@ -1,12 +1,17 @@
 import React, { MouseEventHandler } from 'react';
 import AddSVG from '../../../../../../../assets/svgs/add.svg';
+import { show_modal } from '../../../../../events/ruleconfig';
 
 
-interface Props {}
+interface Props {
+  anime_slug_url: string,
+  oncreate: (value: ExtensionRuleConfig) => void,
+}
 
-export const AdvanceNewCardBlock: React.FC<Props> = () => {
+export const AdvanceNewCardBlock: React.FC<Props> = ({ anime_slug_url, oncreate }) => {
+  
   const handleCardClick: MouseEventHandler<HTMLDivElement> = () => {
-    return;
+    show_modal(anime_slug_url, oncreate, () => {});
   };
 
   return (
