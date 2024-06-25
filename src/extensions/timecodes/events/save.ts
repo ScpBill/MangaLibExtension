@@ -36,7 +36,7 @@ export async function save (
     for (const player of filteredPlayersData) {
       const duration = await getDuration(player);
       await sendRequest(token, `${player.id}`, {
-        timecode: modify(unifyTimecodes!, duration, anime_slug_url, player.team.slug_url, storage),
+        timecode: normal(modify(unifyTimecodes!, duration, anime_slug_url, player.team.slug_url, storage), duration),
         applyTimecodesCurrentTeam: true,
       })
     }
