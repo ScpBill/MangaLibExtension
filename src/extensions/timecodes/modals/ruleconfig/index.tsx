@@ -1,10 +1,13 @@
 import React, { MouseEventHandler, useState } from 'react';
 import { AdvanceTimecodeInRule } from './timecode';
 import { AdvanceTimelineInRule } from './timeline';
+import { AdvanceCardBlockInRule } from './card';
 import CrossSVG from '../../../../assets/svgs/cross.svg';
 import AddSVG from '../../../../assets/svgs/add.svg';
 import SaveSVG from '../../../../assets/svgs/save.svg';
 import TrashSVG from '../../../../assets/svgs/trash.svg';
+import BackSVG from '../../../../assets/svgs/back.svg';
+import { show_toast } from '../../events/show_toast';
 
 
 interface Props {
@@ -20,18 +23,45 @@ export const RuleConfigModalPopup: React.FC<Props> = ({ anime_slug_url, data, on
 
   const [ hover, setHover ] = useState(false);
   const [ name, setName ] = useState(data.display.name ?? '');
-  const [ image, setImage ] = useState(data.display.img?.url);
-  const [ gif, setGif ] = useState(data.display.gif?.url);
+  const [ img, setImg ] = useState(data.display.img);
+  const [ gif, setGif ] = useState(data.display.gif);
   const [ local, setLocal ] = useState(!!data.onlyOnTitle);
   const [ insertions, setInsertions ] = useState(data.insertions);
   const [ overrides, setOverrides ] = useState(data.overrides);
+  const [ editMode, setEditMode ] = useState<{ type: 'image' | 'gif', src: string } | null>(null);
+  const [ validImage, setValidImage ] = useState(false);
+
+  const handleBackEvent: MouseEventHandler<HTMLDivElement> = () => {
+    if (editMode) setEditMode(null);
+  }
+
+  const handleSaveCardImageEvent: MouseEventHandler<HTMLButtonElement> = () => {
+    if (editMode) {
+      if (!validImage)
+        return show_toast({ data: { toast: { message: 'Неправильный адрес к изображению', type: 'error' } } });
+      const ext = editMode.src.split('.').at(-1)?.split('?')[0];
+      if (editMode.type === 'gif' && ext !== 'gif')
+        return show_toast({ data: { toast: { message: 'Неправильный формат изображения. Необходимо - gif', type: 'error' } } });
+      if (editMode.type === 'image' && !['png', 'jpg', 'jpeg', 'webp'].includes(ext ?? ''))
+        return show_toast({ data: { toast: { message: 'Неправильный формат изображения. Необходимо - png, jpg, jpeg, wepb', type: 'error' } } });
+      editMode.type === 'image' ? setImg({ url: editMode.src }) : setGif({ url: editMode.src });
+      setEditMode(null);
+    }
+  }
+
+  const handleRemoveCardImageEvent: MouseEventHandler<HTMLButtonElement> = () => {
+    if (editMode) {
+      editMode.type === 'image' ? setImg(null) : setGif(null);
+      setEditMode(null);
+    }
+  }
 
   const handleSaveEvent: MouseEventHandler<HTMLButtonElement> = () => {
     onupdate({
       display: {
         name,
-        img: image ? { url: image } : null,
-        gif: gif ? { url: gif } : null,
+        img,
+        gif,
       },
       insertions,
       overrides,
@@ -121,66 +151,79 @@ export const RuleConfigModalPopup: React.FC<Props> = ({ anime_slug_url, data, on
             <CrossSVG/>
           </button>
           <div className='popup-header'>
-            <div className='popup-header__title'>
-              Настройка правила
+            <div className='popup-header__title' onClick={ handleBackEvent }>
+              { editMode ? <><BackSVG/><span>Назад</span></> : <>Настройка правила</> }
             </div>
           </div>
           <div className='popup-body'>
-            <div className='form-group _offset border-bottom'>
-              <div className='form-label'>
-                <span>Отображение</span>
-              </div>
-              <div className='form-input'>
-                <input className='form-input__field' type='text' placeholder='Название правила' value={ name } onChange={ (event) => setName(event.target.value) }/>
-              </div>
-              <div className='team-cards-grid' style={({ padding: '12px 0', gap: '12px' })}>
-                <div className='rule-card-item' style={({ padding: '0' })}>
+            { editMode ? <>
+                <div className='form-group'>
+                  <div className='form-label'>
+                    <span>Предварительный просмотр</span>
+                  </div>
                   <div className='cover _shadow'>
                     <div className='cover__wrap rule-card-cover'>
-                      { image
-                        ? <img src={ image } className='cover__img _loaded cover-options' loading='lazy'/>
-                        : <div className='cover__img rule-card-cover _loaded card-new-style'><AddSVG/><span>Загрузить картинку</span></div> }
+                      <img src={ editMode.src } className='cover__img _loaded cover-options' loading='lazy' onError={ () => setValidImage(false) } onLoad={ () => setValidImage(true) }/>
                     </div>
                   </div>
                 </div>
-                <div className='rule-card-item' style={({ padding: '0' })}>
-                  <div className='cover _shadow'>
-                    <div className='cover__wrap rule-card-cover'>
-                      { gif
-                        ? <img src={ gif } className='cover__img _loaded cover-options' loading='lazy'/>
-                        : <div className='cover__img rule-card-cover _loaded card-new-style'><AddSVG/><span>Загрузить гифку</span></div> }
-                    </div>
+                <div className='form-group _offset'>
+                  <div className='form-label'>
+                    <span>{ editMode.type === 'image' ? 'Ссылка на изображение' : 'Ссылка на гиф-изображение' }</span>
+                  </div>
+                  <div className='form-input'>
+                    <input className='form-input__field' type='text' placeholder='Вставьте url сюда' value={ editMode.src } onChange={ (event) => setEditMode({ ...editMode, src: event.target.value }) }/>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className='form-group _offset dual-pad-spacing border-bottom'>
-              <label className='form-switcher'>
-                <div className='form-switcher-text'>
-                  <div className='form-switcher-text__main'>Только для этого тайтла</div>
-                  <div className='form-switcher-text__label'>Не будет отображаться в других тайтлах</div>
+                <div className='btns _stretch save-form-group'>
+                  <button className='btn variant-success' type='button' onClick={ handleSaveCardImageEvent }>
+                    <SaveSVG/><span>Сохранить</span>
+                  </button>
+                  <button className='btn is-icon variant-danger' type='button' onClick={ handleRemoveCardImageEvent }>
+                    <TrashSVG/>
+                  </button>
                 </div>
-                <div className='switcher-input'>
-                  <input type='checkbox' className='switcher-input__box' true-value='true' false-value='false' value={ `${local}` } onChange={ (event) => setLocal(event.target.value === 'true' ? true : false) }/>
-                  <span className='switcher-input__slider'/>
+              </> : <>
+              <div className='form-group _offset border-bottom'>
+                <div className='form-label'>
+                  <span>Отображение</span>
                 </div>
-              </label>
-            </div>
-            <div className='form-group dual-pad-spacing border-bottom'>
-              <div className='form-label'>
-                <span>Выберете точку на таймлайне</span>
+                <div className='form-input'>
+                  <input className='form-input__field' type='text' placeholder='Название правила' value={ name } onChange={ (event) => setName(event.target.value) }/>
+                </div>
+                <div className='team-cards-grid' style={({ padding: '12px 0', gap: '12px' })}>
+                  <AdvanceCardBlockInRule type='image' data={ img } onremove={ () => setImg(null) } oneditmode={ setEditMode }/>
+                  <AdvanceCardBlockInRule type='gif' data={ gif } onremove={ () => setGif(null) } oneditmode={ setEditMode }/>
+                </div>
               </div>
-              <AdvanceTimelineInRule onpointclick={ insertionAddEventHandler } onlineclick={ () => {} }/>
-            </div>
-            { renderTimecodes() }
-            <div className='btns _stretch save-form-group'>
-              <button className='btn variant-success' type='button' onClick={ handleSaveEvent }>
-                <SaveSVG/><span>Сохранить</span>
-              </button>
-              <button className='btn is-icon variant-danger' type='button' onClick={ handleRemoveEvent }>
-                <TrashSVG/>
-              </button>
-            </div>
+              <div className='form-group _offset dual-pad-spacing border-bottom'>
+                <label className='form-switcher'>
+                  <div className='form-switcher-text'>
+                    <div className='form-switcher-text__main'>Только для этого тайтла</div>
+                    <div className='form-switcher-text__label'>Не будет отображаться в других тайтлах</div>
+                  </div>
+                  <div className='switcher-input'>
+                    <input type='checkbox' className='switcher-input__box' true-value='true' false-value='false' value={ `${local}` } onChange={ (event) => setLocal(event.target.value === 'true' ? true : false) }/>
+                    <span className='switcher-input__slider'/>
+                  </div>
+                </label>
+              </div>
+              <div className='form-group dual-pad-spacing border-bottom'>
+                <div className='form-label'>
+                  <span>Выберете точку на таймлайне</span>
+                </div>
+                <AdvanceTimelineInRule onpointclick={ insertionAddEventHandler } onlineclick={ () => {} }/>
+              </div>
+              { renderTimecodes() }
+              <div className='btns _stretch save-form-group'>
+                <button className='btn variant-success' type='button' onClick={ handleSaveEvent }>
+                  <SaveSVG/><span>Сохранить</span>
+                </button>
+                <button className='btn is-icon variant-danger' type='button' onClick={ handleRemoveEvent }>
+                  <TrashSVG/>
+                </button>
+              </div>
+            </> }
           </div>
         </div>
       </div>
