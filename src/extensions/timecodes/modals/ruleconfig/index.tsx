@@ -166,7 +166,7 @@ export const RuleConfigModalPopup: React.FC<Props> = ({ anime_slug_url, data, on
                 </div>
               </label>
             </div>
-            <div className='form-group dual-pad-spacing'>
+            <div className='form-group dual-pad-spacing border-bottom'>
               <div className='form-label'>
                 <span>Выберете точку на таймлайне</span>
               </div>
