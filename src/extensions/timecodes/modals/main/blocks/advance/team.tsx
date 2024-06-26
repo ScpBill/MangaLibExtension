@@ -8,9 +8,10 @@ interface Props {
   team: EpisodeResponse['data']['players'][0]['team'],
   data: ExtensionTeamConfig | undefined,
   onchange: (value: ExtensionTeamConfig) => void,
+  oncreate: (value: ExtensionTeamConfig) => void,
 }
 
-export const AdvanceTeamBlock: React.FC<Props> = ({ anime_slug_url, team, data, onchange }) => {
+export const AdvanceTeamBlock: React.FC<Props> = ({ anime_slug_url, team, data, onchange, oncreate }) => {
 
   function renderCardsGrid () {
     return (data ? data.rules.map((rule, index) => {
@@ -31,29 +32,23 @@ export const AdvanceTeamBlock: React.FC<Props> = ({ anime_slug_url, team, data, 
   }
 
   function RuleCreateEvent (value: ExtensionRuleConfig) {
-    if (!data) data = {
+    if (!data) return oncreate({
       slug_url: team.slug_url,
-      rules: [],
-    };
-    onchange({ ...data, rules: data.rules.concat([value]) });
+      rules: [value],
+    });
+    return onchange({ ...data, rules: data.rules.concat([value]) });
   }
 
   function RuleUpdateEvent (this: number, value: ExtensionRuleConfig) {
-    if (!data) data = {
-      slug_url: team.slug_url,
-      rules: [],
-    };
-    onchange({ ...data, rules: data.rules.map((v, i) => this !== i ? v : value) });
+    if (!data) return;
+    return onchange({ ...data, rules: data.rules.map((v, i) => this !== i ? v : value) });
   }
 
   function RuleRemoveEvent (this: number) {
-    if (!data) data = {
-      slug_url: team.slug_url,
-      rules: [],
-    };
+    if (!data) return;
     const rules = data.rules;
     rules.splice(this, 1);
-    onchange({ ...data, rules });
+    return onchange({ ...data, rules });
   }
 
   return (

@@ -160,6 +160,10 @@
   padding: 12px 0;
 }
 
+.pad-bottom {
+  padding-bottom: 12px;
+}
+
 .border-bottom {
   margin: 0px;
   border-bottom: solid 1px var(--border-base);

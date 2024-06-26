@@ -40,13 +40,18 @@ export const AdvanceBlock: React.FC<Props> = ({ anime_slug_url, data, onchange }
         anime_slug_url={ anime_slug_url }
         team={ team }
         data={ data }
-        onchange={ TeamUpdateEvent.bind(index) }
+        onchange={ TeamUpdateEvent }
+        oncreate={ TeamCreateEvent }
       />;
     })
   }
 
-  function TeamUpdateEvent (this: number, value: ExtensionTeamConfig) {
-    onchange({ ...data, teams: data.teams.map((v, i) => this !== i ? v : value) });
+  function TeamUpdateEvent (value: ExtensionTeamConfig) {
+    onchange({ ...data, teams: data.teams.map((team) => team.slug_url === value.slug_url ? value : team) });
+  }
+
+  function TeamCreateEvent (value: ExtensionTeamConfig) {
+    onchange({ ...data, teams: data.teams.concat([value]) });
   }
 
   return (

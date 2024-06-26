@@ -157,7 +157,7 @@ export const RuleConfigModalPopup: React.FC<Props> = ({ anime_slug_url, data, on
           </div>
           <div className='popup-body'>
             { editMode ? <>
-                <div className='form-group'>
+                <div className='form-group pad-bottom'>
                   <div className='form-label'>
                     <span>Предварительный просмотр</span>
                   </div>
