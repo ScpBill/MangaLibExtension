@@ -30,7 +30,7 @@ export function addSecondsToTime (time: string, seconds: number, atSeconds: numb
 
 export function timeToSeconds (time: string): number {
   const minus = time.startsWith('-') ? -1 : 1;
-  if (minus === -1) time.slice(1);
+  if (minus === -1) time = time.slice(1);
   const vars = time.split(':');
   if (vars.length > 2) {
     return ((+vars[0]) * 3600 + (+vars[1]) * 60 + (+vars[2])) * minus;
@@ -40,9 +40,9 @@ export function timeToSeconds (time: string): number {
 }
 
 
-export function secondsToTime (seconds: number, minusZero: boolean = false): string {
+export function secondsToTime (seconds: number, signIsMinus: boolean = false): string {
   if (!seconds)
-    return (minusZero ? '-' : '') + '00:00';
+    return (signIsMinus ? '-' : '') + '00:00';
   const minus = seconds < 0 ? '-' : '';
   if (minus === '-') seconds *= -1;
   const h = Math.floor(seconds / 3600);

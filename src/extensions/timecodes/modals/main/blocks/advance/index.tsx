@@ -64,9 +64,9 @@ export const AdvanceBlock: React.FC<Props> = ({ anime_slug_url, data, onchange }
           </span>
         </div>
       </div>
-      <div className='scrollable-block'>
-        { !data.config.collapsed && renderTeamsList() }
-      </div>
+      { !data.config.collapsed && <div className='scrollable-block'>
+        { renderTeamsList() }
+      </div> }
     </>
   );
 };

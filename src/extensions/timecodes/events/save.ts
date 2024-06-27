@@ -12,11 +12,18 @@ export async function save (
   storage: ExtensionStorage,
   options: Options,
 ): Promise<void> {
-  const token = JSON.parse(window.localStorage.getItem('auth')!).token.access_token;
+  const token = JSON.parse(window.localStorage.getItem('auth')!).token?.access_token;
+  if (!token)
+    return show_toast({ data: { toast: { message: 'Вы не авторизованы', type: 'error' } } });
   const filteredPlayersData = players_data.filter((player) => player.player === 'Animelib') as EpisodeResponse['data']['players'];
 
   let currentPlayer: EpisodeResponse['data']['players'][0];
   let unifyTimecodes: Timecode[];
+
+  for (const timecode of timecodes) {
+    if (!/-?(\d{2}:)?\d{2}:\d{2}/.test(timecode.from) || !/-?(\d{2}:)?\d{2}:\d{2}/.test(timecode.to))
+      return show_toast({ data: { toast: { message: 'Неверный формат тайм-кода: HH:MM:SS или -HH:MM:SS', type: 'error' } } });
+  }
 
   if (options.for_one_team) {
     currentPlayer = getPlayerById(filteredPlayersData, player_id)!;
@@ -126,7 +133,7 @@ async function getDuration (
   video.setAttribute('src', 'https://video1.anilib.me/.%D0%B0s/' + video_href);
   await new Promise<void>(resolve => (video.onloadeddata = () => resolve()));
 
-  return video.duration;
+  return Math.floor(video.duration);
 }
 
 
